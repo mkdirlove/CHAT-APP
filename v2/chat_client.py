@@ -1,4 +1,7 @@
-import sys, time, socket, threading
+#!/usr/bin/python3
+
+from os import system
+import sys, time, socket, threading, platform
 
 class bcolors:
     HEADER = '\033[95m'
@@ -23,27 +26,45 @@ banner = """
 
       [+] Welcome clients [+]
 """
+
+def clear_pan():
+    if platform.system() == "Linux":
+        system("clear")
+    else:
+        exit(1)
+
+
 def banner_slowprint(s):
 	for c in s + '\n':
 		sys.stdout.write(c)
 		sys.stdout.flush()
 		time.sleep(.01/10)
-		
+
+
 def slowprint(s):
 	for c in s + '\n':
 		sys.stdout.write(c)
 		sys.stdout.flush()
 		time.sleep(1/10)
 
-banner_slowprint(bcolors.HEADER+banner+bcolors.ENDC)
-slowprint(bcolors.WARNING+"[CONNECTING] Connecting to server..."+bcolors.ENDC)
-slowprint(bcolors.GREEN+"[CONNECTED] Connected to server..."+bcolors.ENDC)
-nickname = input(bcolors.GREEN+"[+] Enter your nickname: "+bcolors.ENDC)
+
+try:
+    clear_pan()
+    banner_slowprint(bcolors.HEADER+banner+bcolors.ENDC)
+    slowprint(f"{bcolors.WARNING}[CONNECTING] Connecting to server...{bcolors.ENDC}")
+    slowprint(f"{bcolors.GREEN}[CONNECTED] Connected to server...{bcolors.ENDC}")
+    nickname = input(f"{bcolors.GREEN}[+] Enter your nickname: {bcolors.ENDC}")
+except KeyboardInterrupt as e:
+    slowprint(f"{bcolors.FAIL}[ERROR] error he was forced")
+    print(e)
+    exit(1)
+
 
 client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 server = '127.0.0.1'
 port = 12345     
 client.connect((server, port))                            
+
 
 def receive():
     while True:                                                
@@ -54,17 +75,25 @@ def receive():
             else:
                 print(message)
         except:                                                
-            slowprint(bcolor.FAIL+"[ERROR] An error occured!"+bcolors.ENDC)
+            slowprint(f"{bcolors.FAIL}[ERROR] An error occured!{bcolors.ENDC}")
             client.close()
             break
-def write():
-    while True:                                                
-        message = '[{}] >> {}'.format(nickname, input(''))
-        client.send(message.encode('ascii'))
 
-receive_thread = threading.Thread(target=receive)              
-receive_thread.start()
-write_thread = threading.Thread(target=write)                   
-write_thread.start()
+
+def write():
+    while True:  
+        try:                                              
+            message = f'[{nickname}] >> {input("")}'
+            client.send(message.encode('ascii'))
+        except KeyboardInterrupt:
+            slowprint(f"{bcolors.FAIL}[ERROR] error he was forced") 
+            exit(1)
+
+
+if __name__ == '__main__':
+    receive_thread = threading.Thread(target=receive)              
+    receive_thread.start()
+    write_thread = threading.Thread(target=write)                   
+    write_thread.start()
 
 
